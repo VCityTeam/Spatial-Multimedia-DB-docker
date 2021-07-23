@@ -16,9 +16,16 @@ services:
       - ${POSTGRES_PORT}:${POSTGRES_PORT}
     command: -p ${POSTGRES_PORT}
 
-  app:
-    container_name: Spatial-Multimedia-DB
-    build: .
+  spatial-multimedia-db:
+    build:
+      context: https://github.com/VCityTeam/Spatial-Multimedia-DB.git#:Spatial-Multimedia-DB-context
+      args:
+        ordbms: ${ordbms}
+        user: ${POSTGRES_USER}
+        password: ${POSTGRES_PASSWORD}
+        host: ${host}
+        port: ${POSTGRES_PORT}
+        dbname: ${POSTGRES_DB}
     ports:
       - ${SPATIAL_MULTIMEDIA_DB_PORT}:5000
     volumes:
