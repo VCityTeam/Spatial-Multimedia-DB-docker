@@ -15,21 +15,15 @@ before_install:
 
 jobs:
   include:
-    - stage: Building Spatial-Multimedia-DB container
+    - stage: Building and running Spatial-Multimedia-DB container
       script:
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context
-    - stage: Running Spatial-Multimedia-DB container
-      script:
         - travis_wait 2 docker run -t vcity:Spatial-Multimedia-DB
-    - stage: Building docker-compose
+    - stage: Building and running docker-compose
       script:
         - |
           cd Example
           docker-compose build
-    - stage: Running docker-compose
-      script:
-        - |
-          cd Example
           docker-compose up -d
           travis_wait 2
           docker-compose down
