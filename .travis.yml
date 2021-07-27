@@ -11,6 +11,8 @@ jobs:
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context
     - stage: Building docker-compose
       script:
+        - docker-compose --version
+        - docker-compose --help
         - docker-compose --project-directory Example build
     - stage: "Markdown link checks"
       language: node_js
