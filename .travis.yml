@@ -15,15 +15,27 @@ before_install:
 
 jobs:
   include:
-    - stage: Building container
+    - stage: Building Spatial-Multimedia-DB container
       script:
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context
+    - stage: Running Spatial-Multimedia-DB container
+      script:
+        - travis_wait 2 docker run -t vcity:Spatial-Multimedia-DB
     - stage: Building docker-compose
       script:
-        - docker-compose --project-directory Example build
+        - |
+          cd Example
+          docker-compose build
+    - stage: Running docker-compose
+      script:
+        - |
+          cd Example
+          docker-compose up -d
+          travis_wait 2
+          docker-compose down
     - stage: "Markdown link checks"
       language: node_js
-      node_js: 4
+      node_js: 12
       script:
         - npm install --global remark-cli remark-validate-links
         - remark -u validate-links .
