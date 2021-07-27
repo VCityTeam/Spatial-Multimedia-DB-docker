@@ -4,6 +4,15 @@ language: generic
 services:
   - docker
 
+env:
+  - DOCKER_COMPOSE_VERSION=1.29.2
+
+before_install:
+  - sudo rm /usr/local/bin/docker-compose
+  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+  - chmod +x docker-compose
+  - sudo mv docker-compose /usr/local/bin
+
 jobs:
   include:
     - stage: Building container
@@ -11,8 +20,6 @@ jobs:
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context
     - stage: Building docker-compose
       script:
-        - docker-compose --version
-        - docker-compose --help
         - docker-compose --project-directory Example build
     - stage: "Markdown link checks"
       language: node_js
