@@ -31,7 +31,6 @@ addons:
     - postgresql-client-12
 
 services:
-  - postgresql
   - docker
 
 before_install:
