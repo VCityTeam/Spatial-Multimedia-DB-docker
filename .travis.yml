@@ -3,22 +3,32 @@ dist: focal
 language: generic
 services:
   - docker
+  - postgresql
 
 env:
   - DOCKER_COMPOSE_VERSION=1.29.2
 
 before_install:
-  - sudo rm /usr/local/bin/docker-compose
-  - curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
-  - chmod +x docker-compose
-  - sudo mv docker-compose /usr/local/bin
+  - |
+    # Install a more recent version than the default one
+    export  DOCKER_COMPOSE_VERSION=1.29.2
+    sudo rm /usr/local/bin/docker-compose
+    curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
+    chmod +x docker-compose
+    sudo mv docker-compose /usr/local/bin
+  -|
+    # Travis context requires a specific database configuration
+    psql -c 'create database extendeddoc;' -U postgres
+    psql -c '\l' -U postgres
 
 jobs:
   include:
     - stage: Building and running Spatial-Multimedia-DB container
       script:
-        - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context
-        - travis_wait 2 docker run -t vcity:Spatial-Multimedia-DB
+        - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context --build-arg POSTGRES_PORT=8995 --build-arg POSTGRES_PASSWORD="" --build-arg POSTGRES_HOST=localhost
+        - docker run --rm --detach -t vcity:Spatial-Multimedia-DB
+        - travis_wait 2 
+        - docker stop $(docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}")
     - stage: Building and running docker-compose
       script:
         - |
