@@ -7,23 +7,10 @@ env:
     # PostgreSQL version 12, the user is travis and the port is 5433 instead
     # refer to https://docs.travis-ci.com/user/database-setup/#using-a-different-postgresql-version
     - PGPORT=5432
-    - PGUSER='postgres'
+    - PGUSER=postgres
   
 addons:
-  # For the focal distro, Travis tries to use postgresql version 12 that
-  # fails on launching the service with message
-  #    Failed to start postgresql@12-main.service: Unit postgresql@12-main.service not found.
-  # A workaround to install an anterior version of postgresql is provided by
-  # https://stackoverflow.com/questions/49850020/psql-could-not-connect-to-server-error-on-travis-ci
-  # but alas such installations fail with respective message
-  #    E: Package 'postgresql-9.6' has no installation candidate
-  #    E: Unable to locate package postgresql-10
-  # postgresql: '10'
-  # apt:
-  #  packages:
-  #  - postgresql-10
-  #  - postgresql-client-10
-  # Pinning the version to make sure
+  # Pinning the postgresql version (just to make sure):
   postgresql: "12"
   apt:
     packages:
@@ -32,6 +19,11 @@ addons:
 
 services:
   - docker
+  # Note that it is NOT necessary to require the postgresql service
+  # with a line 
+  #   - postgresql
+  # as explained by this post
+  # https://stackoverflow.com/questions/61734368/postgresql-12-on-travis-ci-taking-5-minutes-to-startup#62037133
 
 before_install:
   - |
@@ -45,8 +37,10 @@ before_install:
 before_script:
   # Travis context requires a specific database configuration
   - psql -c 'create database extendeddoc;' --username=travis --port=5432
-  - psql -c 'create database extendeddoc;' --username=postgres --port=5432
-  - psql -c '\l' --username=postgres --port=5432
+  - psql -c '\l' --username=travis
+  - psql -c '\l'
+  # - psql -c 'create database extendeddoc;' --username=postgres --port=5432
+  # - psql -c '\l' --username=postgres --port=5432
 
 jobs:
   include:
