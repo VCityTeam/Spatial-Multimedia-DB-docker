@@ -4,10 +4,10 @@ language: generic
 
 env:
   global:
-  # PostgreSQL version 12, the user is travis and the port is 5433 instead
-  # refer to https://docs.travis-ci.com/user/database-setup/#using-a-different-postgresql-version
-  - PGPORT=5432
-  - PGUSER=postgres
+    # PostgreSQL version 12, the user is travis and the port is 5433 instead
+    # refer to https://docs.travis-ci.com/user/database-setup/#using-a-different-postgresql-version
+    - PGPORT=5432
+    - PGUSER=postgres
   
 addons:
   # For the focal distro, Travis tries to use postgresql version 12 that
@@ -44,12 +44,10 @@ before_install:
     sudo mv docker-compose /usr/local/bin
 
 before_script:
-  - |
-    psql --version
-    psql --help
-    # Travis context requires a specific database configuration
-    psql -c 'create database extendeddoc;' --username=postgres --port=5432
-    psql -c '\l' --username=postgres --port=5432
+  # Travis context requires a specific database configuration
+  - psql -c 'create database extendeddoc;' --username=travis --port=5433
+  - psql -c 'create database extendeddoc;' --username=postgres --port=5432
+  - psql -c '\l' --username=postgres --port=5432
 
 jobs:
   include:
