@@ -9,11 +9,13 @@ addons:
   # For the focal distro, Travis tries to use postgresql version 12 that
   # fails. A workaround is provided by
   # https://stackoverflow.com/questions/49850020/psql-could-not-connect-to-server-error-on-travis-ci
-  postgresql: '9.6'
+  # Alas the installation of version 9.6 fails with message
+  #    E: Package 'postgresql-9.6' has no installation candidate
+  postgresql: '10'
   apt:
     packages:
-    - postgresql-9.6
-    - postgresql-client-9.6
+    - postgresql-10
+    - postgresql-client-10
 
 before_install:
   - |
