@@ -46,15 +46,10 @@ jobs:
   include:
     - stage: Building and running Spatial-Multimedia-DB container
       script:
-        - |
-          docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context 
-          --build-arg POSTGRES_PORT=5432 
-          --build-arg POSTGRES_USER=travis 
-          --build-arg POSTGRES_PASSWORD= 
-          --build-arg POSTGRES_PASSWORD="" 
-          --build-arg POSTGRES_HOST=localhost
+        - psql -c '\l' --username=travis
+        - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context --build-arg POSTGRES_PORT=5432 --build-arg POSTGRES_USER=travis --build-arg POSTGRES_PASSWORD="" --build-arg POSTGRES_HOST=localhost
         - docker run --rm --detach -t vcity:Spatial-Multimedia-DB
-        - travis_wait 2 
+        - sleep 100
         - docker stop $(docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}")
     - stage: Building and running docker-compose
       script:
