@@ -7,9 +7,11 @@ services:
   
 addons:
   # For the focal distro, Travis tries to use postgresql version 12 that
-  # fails. A workaround is provided by
+  # fails on launching the service with message
+  #    Failed to start postgresql@12-main.service: Unit postgresql@12-main.service not found.
+  # A workaround to install version 9.6 is provided by
   # https://stackoverflow.com/questions/49850020/psql-could-not-connect-to-server-error-on-travis-ci
-  # Alas the installation of version 9.6 fails with message
+  # but alas the installation of version 9.6 fails with message
   #    E: Package 'postgresql-9.6' has no installation candidate
   postgresql: '10'
   apt:
