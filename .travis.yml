@@ -4,9 +4,12 @@ language: generic
 
 env:
   global:
-    # PostgreSQL version 12, the user is travis and the port is 5433 instead
-    # refer to https://docs.travis-ci.com/user/database-setup/#using-a-different-postgresql-version
+    # For PostgreSQL version 12, the documentation
+    #    https://docs.travis-ci.com/user/database-setup/#using-a-different-postgresql-version
+    # states that the default user is travis and the port is 5433
     - PGPORT=5432
+    # Uninterrestingly enough, the following variable doesn't seem to be taken into
+    # account and the default user remains 'travis'. Sigh.
     - PGUSER=postgres
   
 addons:
@@ -36,17 +39,14 @@ before_install:
 
 before_script:
   # Travis context requires a specific database configuration
-  - psql -c 'create database extendeddoc;' --username=travis --port=5432
+  - psql -c 'create database extendeddoc;' --username=travis
   - psql -c '\l' --username=travis
-  - psql -c '\l'
-  # - psql -c 'create database extendeddoc;' --username=postgres --port=5432
-  # - psql -c '\l' --username=postgres --port=5432
 
 jobs:
   include:
     - stage: Building and running Spatial-Multimedia-DB container
       script:
-        - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context --build-arg POSTGRES_PORT=8995 --build-arg POSTGRES_PASSWORD="" --build-arg POSTGRES_HOST=localhost
+        - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context --build-arg POSTGRES_PORT=5432 --build-arg POSTGRES_USER=travis --build-arg POSTGRES_PASSWORD= --build-arg POSTGRES_PASSWORD="" --build-arg POSTGRES_HOST=localhost
         - docker run --rm --detach -t vcity:Spatial-Multimedia-DB
         - travis_wait 2 
         - docker stop $(docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}")
