@@ -37,19 +37,17 @@ before_install:
     chmod +x docker-compose
     sudo mv docker-compose /usr/local/bin
 
-before_script:
-  # Travis context requires a specific database configuration
-  - psql -c 'create database extendeddoc;' --username=travis
-  - psql -c '\l' --username=travis
-
 jobs:
   include:
     - stage: Building and running Spatial-Multimedia-DB container
       script:
+        - psql -c 'create database extendeddoc;' --username=travis
         - psql -c '\l' --username=travis
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context --build-arg POSTGRES_PORT=5432 --build-arg POSTGRES_USER=travis --build-arg POSTGRES_PASSWORD="" --build-arg POSTGRES_HOST=localhost
         - docker run --rm --detach -t vcity:Spatial-Multimedia-DB
+        - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
         - sleep 100
+        - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
         - docker stop $(docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}")
     - stage: Building and running docker-compose
       script:
@@ -57,7 +55,7 @@ jobs:
           cd Example
           docker-compose build
           docker-compose up -d
-          travis_wait 2
+          sleep 100
           docker-compose down
     - stage: "Markdown link checks"
       language: node_js
