@@ -45,7 +45,7 @@ before_install:
 
 before_script:
   # Travis context requires a specific database configuration
-  - psql -c 'create database extendeddoc;' --username=travis --port=5433
+  - psql -c 'create database extendeddoc;' --username=travis --port=5432
   - psql -c 'create database extendeddoc;' --username=postgres --port=5432
   - psql -c '\l' --username=postgres --port=5432
 
