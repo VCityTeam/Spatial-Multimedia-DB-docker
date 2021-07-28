@@ -1,9 +1,6 @@
 os: linux
 dist: focal
 language: generic
-services:
-  - docker
-  - postgresql
 
 env:
   global:
@@ -28,6 +25,14 @@ addons:
   #  - postgresql-client-10
   # Pinning the version to make sure
   postgresql: "12"
+  apt:
+    packages:
+    - postgresql-12
+    - postgresql-client-12
+
+services:
+  - postgresql
+  - docker
 
 before_install:
   - |
@@ -41,7 +46,7 @@ before_install:
 before_script:
   - |
     psql --version
-    psqel --help
+    psql --help
     # Travis context requires a specific database configuration
     psql -c 'create database extendeddoc;' --username=postgres --port=5432
     psql -c '\l' --username=postgres --port=5432
