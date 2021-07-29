@@ -43,6 +43,8 @@ jobs:
       script:
         - psql -c 'create database extendeddoc;' --username=travis
         - psql -c '\l' --username=travis
+        - psql -c '\l' --username=travis --host=localhost
+        - psql -c '\l' --username=travis --host=localhost --port=5432
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context --build-arg POSTGRES_PORT=5432 --build-arg POSTGRES_USER=travis --build-arg POSTGRES_PASSWORD="" --build-arg POSTGRES_HOST=localhost
         - docker run --rm --detach -t vcity:Spatial-Multimedia-DB
         - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
