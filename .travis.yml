@@ -2,6 +2,10 @@ os: linux
 dist: focal
 language: generic
 
+addons:
+  hosts:
+    - postgres
+    
 services:
   - docker
   # Note that it is NOT necessary to require the postgresql service
@@ -24,7 +28,7 @@ jobs:
     - stage: Building and running Spatial-Multimedia-DB container
       script:
         - docker run --rm --detach -p 5432 --env POSTGRES_PASSWORD=password postgres:9.6
-        - psql -c '\l' --username=postgres --port=5432 --host=localhost
+        - psql -c '\l' --username=postgres --port=5432 --host=postgres
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context
         - docker run --rm --detach -t vcity:Spatial-Multimedia-DB
         - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
