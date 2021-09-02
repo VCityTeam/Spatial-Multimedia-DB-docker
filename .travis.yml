@@ -4,19 +4,20 @@ language: generic
 
 addons:
   hosts:
+    # Configure the "postgres" hostname in /etc/hosts and resolve it to 127.0.0.1
     - postgres
     
 services:
   - docker
   # Note that it is NOT necessary to require the postgresql service
-  # with a line 
+  # with a line of the form
   #   - postgresql
   # as explained by this post
   # https://stackoverflow.com/questions/61734368/postgresql-12-on-travis-ci-taking-5-minutes-to-startup#62037133
 
 before_install:
   - |
-    # Install a more recent version than the default one
+    # Install a more recent version of Docker than the default one
     export  DOCKER_COMPOSE_VERSION=1.29.2
     sudo rm /usr/local/bin/docker-compose
     curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
@@ -27,8 +28,17 @@ jobs:
   include:
     - stage: Building and running Spatial-Multimedia-DB container
       script:
-        - docker run --rm --detach -p 5432 --env POSTGRES_PASSWORD=password postgres:9.6
-        - psql -c '\l' --username=postgres --port=5432 --host=postgres
+        # The postgres container is configured to listen all addresses as told by
+        # running the command
+        #    docker run -i --rm postgres:9.6 cat /usr/share/postgresql/postgresql.conf.sample | grep listen_addresses
+        # that returns
+        #    listen_addresses = '*'
+        # Refer to the "Database Configuration" of the docker documentation as found at
+        #    https://hub.docker.com/_/postgres
+        #
+        # The POSTGRES_USER is defaulted to "postgres"
+        - docker run --rm --detach -p 5432 --user postgres -e POSTGRES_PASSWORD=password postgres:9.6
+        - PGPASSWORD=password psql -c '\l' --username=postgres --port=5432 --host=postgres
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context
         - docker run --rm --detach -t vcity:Spatial-Multimedia-DB
         - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
