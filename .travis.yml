@@ -63,10 +63,13 @@ jobs:
         ### The context is now proprely setup. Proceed with building and
         # then running Spatial-Multimedia-DB container:
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context
+        - docker ps -a
         - docker run --rm --detach vcity:Spatial-Multimedia-DB
+        - docker ps -a
         # Make sure the Spatial-Multimedia-DB container didn't immediatly die
         # at launchtime and display the logs it produced:
         - sleep 10
+        - docker ps -a
         - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
         - docker logs -f  $(docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}")
         - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
