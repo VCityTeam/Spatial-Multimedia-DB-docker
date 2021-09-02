@@ -53,7 +53,7 @@ jobs:
         # https://github.com/VCityTeam/Spatial-Multimedia-DB/blob/master/.env )
         - docker run --rm --detach -p 5432:5432 --user postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=extendeddoc -e POSTGRES_PASSWORD=password postgres:9.6
         # Wait a little bit for the container to spin off...
-        - travis_wait 1
+        - sleep 10
         # ...and make sure the container exposes the postgreSQL service on the
         # configured port:
         - netstat -nlt | grep 5423
@@ -66,7 +66,7 @@ jobs:
         - docker run --rm --detach -t vcity:Spatial-Multimedia-DB
         # Make sure the Spatial-Multimedia-DB container didn't immediatly die
         # at launchtime and display the logs it produced:
-        - travis_wait 1
+        - sleep 10
         - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
         - docker logs -f  $(docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}")
         - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
