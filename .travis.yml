@@ -65,6 +65,7 @@ jobs:
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context
         - docker ps -a
         - docker run --rm --detach vcity:Spatial-Multimedia-DB
+        - docker logs -f  $(docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}")
         - docker ps -a
         # Make sure the Spatial-Multimedia-DB container didn't immediatly die
         # at launchtime and display the logs it produced:
