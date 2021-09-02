@@ -32,6 +32,10 @@ jobs:
   include:
     - stage: Building and running Spatial-Multimedia-DB container
       script:
+        ### Prepare the context of Spatial-Multimedia-DB.
+        # Spatial-Multimedia-DB expects to have access to a postgreSQL
+        # database. Prepare that context by launching that service
+        #
         # The postgres container is configured to listen all addresses as
         # can be checked by # running the command
         #    docker run -i --rm postgres:9.6 cat /usr/share/postgresql/postgresql.conf.sample | grep listen_addresses
@@ -41,25 +45,36 @@ jobs:
         # found at
         #    https://hub.docker.com/_/postgres
         #
-        # We want the container to be configured with the "conninfo" (psql
-        # terminology for connection info) that Spatial-Multimedia-DB will
-        # use. We thus plugin the default values used by Spatial-Multimedia-DB
-        # that is its `.env` file values, refer to
-        # https://github.com/VCityTeam/Spatial-Multimedia-DB/blob/master/.env
-        - netstat -nlt
+        # We want the postgreSQL container to be configured with the "conninfo"
+        # (psql terminology for connection info) that the Spatial-Multimedia-DB
+        # we are testing will consume. We thus configure the postgreSQL to run
+        # with the default values that Spatial-Multimedia-DB is expecting and
+        # that are prescreibed wihtin its `.env` file (refer to
+        # https://github.com/VCityTeam/Spatial-Multimedia-DB/blob/master/.env )
         - docker run --rm --detach -p 5432:5432 --user postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=extendeddoc -e POSTGRES_PASSWORD=password postgres:9.6
-        - sleep 10
-        - netstat -nlt
+        # Wait a little bit for the container to spin off...
+        - travis_wait 1
+        # ...and make sure the container exposes the postgreSQL service on the
+        # configured port:
+        - netstat -nlt | grep 5423
         # Check that the default database can indeed be reached (using the
-        # "conninfo" string to designate the database):
+        # "conninfo" string to designate the database) at the SQL level:
         - psql "host=postgres port=5432 dbname=extendeddoc user=postgres password=password" -c '\l'
+        ### The context is now proprely setup. Proceed with building and
+        # then running Spatial-Multimedia-DB container:
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context
         - docker run --rm --detach -t vcity:Spatial-Multimedia-DB
+        # Make sure the Spatial-Multimedia-DB container didn't immediatly die
+        # at launchtime and display the logs it produced:
+        - travis_wait 1
         - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
         - docker logs -f  $(docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}")
-        # - sleep 100
         - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
-        - docker stop $(docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}")
+        - docker stop $( docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}" )
+        - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
+        # Eventually stop the context postgreSQL container
+        - docker ps -a -q --filter ancestor=postgres:9.6 --format="{{.ID}}"
+        - docker stop $(docker ps -a -q --filter ancestor=postgres:9.6 --format="{{.ID}}")
     - stage: Building and running docker-compose
       script:
         - |
