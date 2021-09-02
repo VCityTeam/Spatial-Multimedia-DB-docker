@@ -4,7 +4,8 @@ language: generic
 
 addons:
   hosts:
-    # Configure the "postgres" hostname in /etc/hosts and resolve it to 127.0.0.1
+    # Configure the "postgres" hostname in /etc/hosts and resolve it to
+    # 127.0.0.1
     - postgres
     
 services:
@@ -17,7 +18,7 @@ services:
 
 before_install:
   - |
-    # Install a more recent version of Docker than the default one
+    # Install a more recent version of DockerCompose than the default one
     export  DOCKER_COMPOSE_VERSION=1.29.2
     sudo rm /usr/local/bin/docker-compose
     curl -L https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-`uname -s`-`uname -m` > docker-compose
@@ -28,17 +29,24 @@ jobs:
   include:
     - stage: Building and running Spatial-Multimedia-DB container
       script:
-        # The postgres container is configured to listen all addresses as told by
-        # running the command
+        # The postgres container is configured to listen all addresses as
+        # can be checked by # running the command
         #    docker run -i --rm postgres:9.6 cat /usr/share/postgresql/postgresql.conf.sample | grep listen_addresses
         # that returns
         #    listen_addresses = '*'
-        # Refer to the "Database Configuration" of the docker documentation as found at
+        # Refer to the "Database Configuration" of the docker documentation as
+        # found at
         #    https://hub.docker.com/_/postgres
         #
-        # The POSTGRES_USER is defaulted to "postgres"
-        - docker run --rm --detach -p 5432 --user postgres -e POSTGRES_PASSWORD=password postgres:9.6
-        - PGPASSWORD=password psql -c '\l' --username=postgres --port=5432 --host=postgres
+        # We want the container to be configured with the "conninfo" (psql
+        # terminology for connection info) that Spatial-Multimedia-DB will
+        # use. We thus plugin the default values used by Spatial-Multimedia-DB
+        # that is its `.env` file values, refer to
+        # https://github.com/VCityTeam/Spatial-Multimedia-DB/blob/master/.env
+        - docker run --rm --detach -p 5432 --user postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=extendeddoc -e POSTGRES_PASSWORD=password postgres:9.6
+        # Check that the default database can indeed be reached (using the
+        # "conninfo" string to designate the database):
+        - psql "host=postgres port=5432 dbname=extendeddoc user=postgres password=password" -c '\l'
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context
         - docker run --rm --detach -t vcity:Spatial-Multimedia-DB
         - docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}"
