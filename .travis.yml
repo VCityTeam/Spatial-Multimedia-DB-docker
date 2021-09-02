@@ -7,6 +7,10 @@ addons:
     # Configure the "postgres" hostname in /etc/hosts and resolve it to
     # 127.0.0.1
     - postgres
+  apt:
+    packages:
+    - telnet
+    
     
 services:
   - docker
@@ -44,6 +48,8 @@ jobs:
         # that is its `.env` file values, refer to
         # https://github.com/VCityTeam/Spatial-Multimedia-DB/blob/master/.env
         - docker run --rm --detach -p 5432 --user postgres -e POSTGRES_USER=postgres -e POSTGRES_DB=extendeddoc -e POSTGRES_PASSWORD=password postgres:9.6
+        - sleep 100
+        - telnet postgres 5432
         # Check that the default database can indeed be reached (using the
         # "conninfo" string to designate the database):
         - psql "host=postgres port=5432 dbname=extendeddoc user=postgres password=password" -c '\l'
