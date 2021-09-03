@@ -56,7 +56,7 @@ jobs:
         - sleep 10
         # ...and make sure the container exposes the postgreSQL service on the
         # configured port (check for port 5432):
-        - netstat -nlt
+        - netstat -a -n -l | grep 5432
         # Check that the default database can indeed be reached (using the
         # "conninfo" string to designate the database) at the SQL level:
         - psql "host=postgres port=5432 dbname=extendeddoc user=postgres password=password" -c '\l'
@@ -64,7 +64,7 @@ jobs:
         # then running Spatial-Multimedia-DB container:
         - docker build -t vcity:Spatial-Multimedia-DB Spatial-Multimedia-DB-context
         - docker ps -a
-        - docker run --rm --detach vcity:Spatial-Multimedia-DB
+        - docker run --rm --detach --net=host vcity:Spatial-Multimedia-DB
         - docker logs -f  $(docker ps -a -q --filter ancestor=vcity:Spatial-Multimedia-DB --format="{{.ID}}")
         - docker ps -a
         # Make sure the Spatial-Multimedia-DB container didn't immediatly die
