@@ -16,7 +16,7 @@ This docker is used to create a [Spatial Multimedia database](https://github.com
 - Add the environment variables located in [this file](Example/.env) to your own .env file.
 - Configure the variables to suit your needs
 - Build and launch your docker-compose (you can paste content from the one located in the [Example folder](./Example).
-- Access your database with a dedicated software, or connect to the adress where it is deployed (usually http://localhost:<SPATIAL_MULTIMEDIA_DB_PORT>). You should see a webpage confirming that your deployment was successful.
+- Access your database with a dedicated software, or connect to the adress where it is deployed (usually `http://localhost:<SPATIAL_MULTIMEDIA_DB_PORT>`). You should see a webpage confirming that your deployment was successful.
 
 
 ### Known issue : Dockers not awaiting each other
