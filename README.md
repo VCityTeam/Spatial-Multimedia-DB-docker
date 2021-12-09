@@ -2,7 +2,7 @@
 
 ## General information
 
-- IMPORTANT : This docker requires a [Postgres database](https://www.postgresql.org/) to run properly. You should have one currently installed and running, possibly in another docker or setup in your docker-compose for example. If you don't have one currently up and running, you can use this [docker](https://hub.docker.com/_/postgres) to set one up, as shown [below](https://github.com/VCityTeam/Spatial-Multimedia-DB-docker/blob/master/README.md#using-docker-compose).
+- IMPORTANT : This docker requires a [Postgres database](https://www.postgresql.org/) to run properly. You should have one currently installed and running, possibly in another docker or setup in your docker-compose for example. If you don't have one currently up and running, you can use this [docker](https://hub.docker.com/_/postgres) to set one up (as illustrated/documented [below through the usage of a docker-compose](https://github.com/VCityTeam/Spatial-Multimedia-DB-docker/blob/master/README.md#using-docker-compose)).
 
 This docker is used to create a [Spatial Multimedia database](https://github.com/VCityTeam/Spatial-Multimedia-DB). It is used to easily deploy a database and simultaneaously add an admin account. This database is used to store documents you can visualize in a 3D environment and interact with (follow the link above for more details).
 
