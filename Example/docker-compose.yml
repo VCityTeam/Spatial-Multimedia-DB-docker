@@ -1,31 +1,27 @@
 version: '3.0'
+
 services:
-  postgres:
-    restart: unless-stopped
-    image: postgres:10
-    container_name: Spatial-Multimedia-postgres
+  postgres-smdb:
+    image: postgres:15.0
     environment:
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - POSTGRES_DB=${POSTGRES_DB_NAME}
+      - POSTGRES_USER=${POSTGRES_SMDB_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_SMDB_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_SMDB_DB_NAME}
     volumes:
-      - ./postgres-data/postgres:/var/lib/postgresql/data
-    expose:
-      - ${POSTGRES_PORT}
+      - ./Smdb_postgres_data:/var/lib/postgresql/data
     ports:
-      - ${POSTGRES_PORT}:${POSTGRES_PORT}
-    command: -p ${POSTGRES_PORT}
+      - ${POSTGRES_SMDB_PORT}:5432
 
   spatial-multimedia-db:
     build:
       context: ../Spatial-Multimedia-DB-context
       args:
-        POSTGRES_ORDBMS: ${POSTGRES_ORDBMS}
-        POSTGRES_USER: ${POSTGRES_USER}
-        POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-        POSTGRES_HOST: ${POSTGRES_HOST}
-        POSTGRES_PORT: ${POSTGRES_PORT}
-        POSTGRES_DB_NAME: ${POSTGRES_DB_NAME}
+        POSTGRES_ORDBMS: ${POSTGRES_SMDB_ORDBMS}
+        POSTGRES_USER: ${POSTGRES_SMDB_USER}
+        POSTGRES_PASSWORD: ${POSTGRES_SMDB_PASSWORD}
+        POSTGRES_HOST: postgres-smdb
+        POSTGRES_PORT: ${POSTGRES_SMDB_PORT}
+        POSTGRES_DB_NAME: ${POSTGRES_SMDB_DB_NAME}
         SPATIAL_MULTIMEDIA_DB_PORT: ${SPATIAL_MULTIMEDIA_DB_PORT}
         SPATIAL_MULTIMEDIA_DB_ADMIN_EMAIL: ${SPATIAL_MULTIMEDIA_DB_ADMIN_EMAIL}
         SPATIAL_MULTIMEDIA_DB_ADMIN_FIRST_NAME: ${SPATIAL_MULTIMEDIA_DB_ADMIN_FIRST_NAME}
@@ -37,4 +33,38 @@ services:
     volumes:
       - .:/api
     depends_on:
-      - postgres
+      - postgres-smdb
+
+  postgres-keycloak:
+    image: postgres:15.0
+    volumes:
+      - ./Keycloak_postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: ${POSTGRES_KEYCLOAK_DB_NAME}
+      POSTGRES_USER: ${POSTGRES_KEYCLOAK_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_KEYCLOAK_PASSWORD}
+    ports:
+      - ${POSTGRES_KEYCLOAK_PORT}:5432
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:21.1.1
+    volumes:
+      - ./Keycloak_data:/opt/keycloak/data/import/
+    command:
+      - start-dev
+      - --import-realm
+    environment:
+      DB_VENDOR: POSTGRES
+      DB_ADDR: postgres-keycloak
+      DB_DATABASE: ${POSTGRES_KEYCLOAK_DB_NAME}
+      DB_USER: ${POSTGRES_KEYCLOAK_USER}
+      DB_SCHEMA: public
+      DB_PASSWORD: ${POSTGRES_KEYCLOAK_PASSWORD}
+      # KEYCLOAK_USER: ${KEYCLOAK_USER}
+      # KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+    ports:
+      - ${KEYCLOAK_PORT}:8080
+    depends_on:
+      - postgres-keycloak

@@ -11,6 +11,7 @@ RUN apt-get install -y git
 
 RUN git clone https://github.com/VCityTeam/Spatial-Multimedia-DB.git
 
+# FIXME: would "WORKDIR $SMDB" work ?
 WORKDIR /Spatial-Multimedia-DB
 
 RUN pip install -r requirements.txt
