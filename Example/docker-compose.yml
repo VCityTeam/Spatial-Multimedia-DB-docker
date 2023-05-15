@@ -1,8 +1,14 @@
 version: '3.0'
 
+# volumes:
+#   postgres_data:
+#     driver: local
+#   kc_postgres_data:
+#     driver: local
+
 services:
   postgres-smdb:
-    image: postgres:15.0
+    image: postgres:15
     environment:
       - POSTGRES_USER=${POSTGRES_SMDB_USER}
       - POSTGRES_PASSWORD=${POSTGRES_SMDB_PASSWORD}
@@ -36,7 +42,7 @@ services:
       - postgres-smdb
 
   postgres-keycloak:
-    image: postgres:15.0
+    image: postgres:15
     volumes:
       - ./Keycloak_postgres_data:/var/lib/postgresql/data
     environment:
@@ -48,23 +54,68 @@ services:
 
   keycloak:
     image: quay.io/keycloak/keycloak:21.1.1
-    volumes:
-      - ./Keycloak_data:/opt/keycloak/data/import/
-    command:
-      - start-dev
-      - --import-realm
     environment:
-      DB_VENDOR: POSTGRES
-      DB_ADDR: postgres-keycloak
-      DB_DATABASE: ${POSTGRES_KEYCLOAK_DB_NAME}
-      DB_USER: ${POSTGRES_KEYCLOAK_USER}
-      DB_SCHEMA: public
-      DB_PASSWORD: ${POSTGRES_KEYCLOAK_PASSWORD}
-      # KEYCLOAK_USER: ${KEYCLOAK_USER}
-      # KEYCLOAK_PASSWORD: ${KEYCLOAK_PASSWORD}
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:${POSTGRES_KEYCLOAK_PORT}/${POSTGRES_KEYCLOAK_DB_NAME}
+      KC_DB_USERNAME: ${POSTGRES_KEYCLOAK_USER}
+      KC_DB_SCHEMA: public
+      KC_DB_PASSWORD: ${POSTGRES_KEYCLOAK_PASSWORD}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      KEYCLOAK_USER: initial_user
+      KEYCLOAK_PASSWORD: initial_user_dummy_password
+    volumes:
+      # Refererence
+      # https://www.keycloak.org/server/containers#_importing_a_realm_on_startup
+      - ./Keycloak_data/import:/opt/keycloak/data/import/
+      # Uncomment folowing line when "dumping" the realm
+      # - ./Keycloak_data/export:/tmp/export
+    command:
+      - start-dev
+    #   # - --import-realm
+    #   # - --verbose
     ports:
       - ${KEYCLOAK_PORT}:8080
     depends_on:
       - postgres-keycloak
+    # command:
+    #   - export
+    #   - "-Dkeycloak.migration.action=export"
+    #   - "-Dkeycloak.migration.provider=singleFile"
+    #   - "-Dkeycloak.migration.realmName=smdb-realm"
+    #   - "-Dkeycloak.migration.usersExportStrategy=REALM_FILE"
+    #   - "-Dkeycloak.migration.file=/tmp/export/smdb-realm.json"
+
+    ### Keycloak related notes
+    # On the correspondance between quay.io images and corresponding sources
+    #  https://keycloak.discourse.group/t/source-behind-the-quay-io-latest-docker-image/15351
+    # The answer goes:
+    #   https://github.com/keycloak/keycloak/tree/main/quarkus/container
+    #
+    # For version 21.1.1 the Dockerfile is 
+    #   https://github.com/keycloak/keycloak/blob/21.1.1/quarkus/container/Dockerfile
+    # that uses this entrypoint.sh
+    #   https://github.com/keycloak/keycloak/blob/21.1.1/quarkus/dist/src/main/content/bin/kc.sh
+    # which provides some indirect clues about finding the environment variables
+    # that are recognised by the main application (that is it points to the java
+    # source code that should be analysed to find which environement variables
+    # are imported).
+    #
+    # The valuable online keycloak container related information (look at the 
+    # relevant options section at the bottom: you will need to open the sub-lists)
+    # encountered at
+    #    https://www.keycloak.org/server/containers#_importing_a_realm_on_startup
+    # seems to be (partially at least) defined here
+    #    https://github.com/keycloak/keycloak/blob/21.1.1/docs/guides/server/containers.adoc
+    #
+    # In order to obtain a (single and complete with users...) realm.json to be
+    # imported at startup time of the keycloak container, a natural method
+    # consists of letting the keycloak containter to boot for the first time
+    # and then to require a dump of the realm (together with all its components
+    # that is including the users). Some nice blogs e.g. 
+    #   https://fnbk.medium.com/how-to-create-a-full-keycloak-export-ccd603e85ad1
+    #   https://keepgrowing.in/tools/keycloak-in-docker-5-how-to-export-a-realm-with-users-and-secrets/
+    # document this process although keycloak docker version 21.1.1 doesnt't
+    # offer the 'stanalone.sh' script anymore.
+    # Instead use the following command
+    # docker exec -t example_keycloak_1 /opt/keycloak/bin/kc.sh export --dir /tmp/export --realm master --users realm_file --file /tmp/export/original-master-realm.json
