@@ -15,25 +15,23 @@ services:
       - POSTGRES_DB=${POSTGRES_SMDB_DB_NAME}
     volumes:
       - ./Smdb_postgres_data:/var/lib/postgresql/data
-    ports:
-      - ${POSTGRES_SMDB_PORT}:5432
 
   spatial-multimedia-db:
     build:
       context: ../Spatial-Multimedia-DB-context
-      args:
-        POSTGRES_ORDBMS: ${POSTGRES_SMDB_ORDBMS}
-        POSTGRES_USER: ${POSTGRES_SMDB_USER}
-        POSTGRES_PASSWORD: ${POSTGRES_SMDB_PASSWORD}
-        POSTGRES_HOST: postgres-smdb
-        POSTGRES_PORT: ${POSTGRES_SMDB_PORT}
-        POSTGRES_DB_NAME: ${POSTGRES_SMDB_DB_NAME}
-        SPATIAL_MULTIMEDIA_DB_PORT: ${SPATIAL_MULTIMEDIA_DB_PORT}
-        SPATIAL_MULTIMEDIA_DB_ADMIN_EMAIL: ${SPATIAL_MULTIMEDIA_DB_ADMIN_EMAIL}
-        SPATIAL_MULTIMEDIA_DB_ADMIN_FIRST_NAME: ${SPATIAL_MULTIMEDIA_DB_ADMIN_FIRST_NAME}
-        SPATIAL_MULTIMEDIA_DB_ADMIN_LAST_NAME: ${SPATIAL_MULTIMEDIA_DB_ADMIN_LAST_NAME}
-        SPATIAL_MULTIMEDIA_DB_ADMIN_PASSWORD: ${SPATIAL_MULTIMEDIA_DB_ADMIN_PASSWORD}
-        SPATIAL_MULTIMEDIA_DB_ADMIN_USERNAME: ${SPATIAL_MULTIMEDIA_DB_ADMIN_USERNAME}
+    environment:
+      POSTGRES_ORDBMS: ${POSTGRES_SMDB_ORDBMS}
+      POSTGRES_USER: ${POSTGRES_SMDB_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_SMDB_PASSWORD}
+      POSTGRES_HOST: postgres-smdb
+      POSTGRES_PORT: 5432
+      POSTGRES_DB_NAME: ${POSTGRES_SMDB_DB_NAME}
+      SPATIAL_MULTIMEDIA_DB_PORT: ${SPATIAL_MULTIMEDIA_DB_PORT}
+      SPATIAL_MULTIMEDIA_DB_ADMIN_EMAIL: ${SPATIAL_MULTIMEDIA_DB_ADMIN_EMAIL}
+      SPATIAL_MULTIMEDIA_DB_ADMIN_FIRST_NAME: ${SPATIAL_MULTIMEDIA_DB_ADMIN_FIRST_NAME}
+      SPATIAL_MULTIMEDIA_DB_ADMIN_LAST_NAME: ${SPATIAL_MULTIMEDIA_DB_ADMIN_LAST_NAME}
+      SPATIAL_MULTIMEDIA_DB_ADMIN_PASSWORD: ${SPATIAL_MULTIMEDIA_DB_ADMIN_PASSWORD}
+      SPATIAL_MULTIMEDIA_DB_ADMIN_USERNAME: ${SPATIAL_MULTIMEDIA_DB_ADMIN_USERNAME}
     ports:
       - ${SPATIAL_MULTIMEDIA_DB_PORT}:5000
     volumes:
@@ -49,16 +47,14 @@ services:
       POSTGRES_DB: ${POSTGRES_KEYCLOAK_DB_NAME}
       POSTGRES_USER: ${POSTGRES_KEYCLOAK_USER}
       POSTGRES_PASSWORD: ${POSTGRES_KEYCLOAK_PASSWORD}
-    ports:
-      - ${POSTGRES_KEYCLOAK_PORT}:5432
 
   keycloak:
     image: quay.io/keycloak/keycloak:21.1.1
     environment:
       KC_DB: postgres
-      KC_DB_URL: jdbc:postgresql://postgres-keycloak:${POSTGRES_KEYCLOAK_PORT}/${POSTGRES_KEYCLOAK_DB_NAME}
-      KC_DB_USERNAME: ${POSTGRES_KEYCLOAK_USER}
       KC_DB_SCHEMA: public
+      KC_DB_URL: jdbc:postgresql://postgres-keycloak:5432/${POSTGRES_KEYCLOAK_DB_NAME}
+      KC_DB_USERNAME: ${POSTGRES_KEYCLOAK_USER}
       KC_DB_PASSWORD: ${POSTGRES_KEYCLOAK_PASSWORD}
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
@@ -74,18 +70,10 @@ services:
       - start-dev
     #   # - --import-realm
     #   # - --verbose
-    ports:
-      - ${KEYCLOAK_PORT}:8080
+    expose:
+      - 8080 # For the record
     depends_on:
       - postgres-keycloak
-    # command:
-    #   - export
-    #   - "-Dkeycloak.migration.action=export"
-    #   - "-Dkeycloak.migration.provider=singleFile"
-    #   - "-Dkeycloak.migration.realmName=smdb-realm"
-    #   - "-Dkeycloak.migration.usersExportStrategy=REALM_FILE"
-    #   - "-Dkeycloak.migration.file=/tmp/export/smdb-realm.json"
-
     ### Keycloak related notes
     # On the correspondance between quay.io images and corresponding sources
     #  https://keycloak.discourse.group/t/source-behind-the-quay-io-latest-docker-image/15351
@@ -119,3 +107,4 @@ services:
     # offer the 'stanalone.sh' script anymore.
     # Instead use the following command
     # docker exec -t example_keycloak_1 /opt/keycloak/bin/kc.sh export --dir /tmp/export --realm master --users realm_file --file /tmp/export/original-master-realm.json
+
