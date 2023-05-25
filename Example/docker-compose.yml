@@ -15,6 +15,17 @@ services:
       - POSTGRES_DB=${POSTGRES_SMDB_DB_NAME}
     volumes:
       - ./Smdb_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test:
+        [
+          # Refer to
+        # https://stackoverflow.com/questions/70205657/postgres-docker-role-root-does-not-exist/71986488#71986488
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   spatial-multimedia-db:
     build:
@@ -37,7 +48,8 @@ services:
     volumes:
       - .:/api
     depends_on:
-      - postgres-smdb
+      postgres-smdb:
+        condition: service_healthy
 
   postgres-keycloak:
     image: postgres:15
@@ -47,6 +59,15 @@ services:
       POSTGRES_DB: ${POSTGRES_KEYCLOAK_DB_NAME}
       POSTGRES_USER: ${POSTGRES_KEYCLOAK_USER}
       POSTGRES_PASSWORD: ${POSTGRES_KEYCLOAK_PASSWORD}
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   keycloak:
     image: quay.io/keycloak/keycloak:21.1.1
@@ -68,13 +89,15 @@ services:
       # - ./Keycloak_data/export:/tmp/export
     command:
       - start-dev
-    #   # - --import-realm
-    #   # - --verbose
-    expose:
-      - 8080 # For the record
+      - --import-realm
+    # - --verbose
+    ports:
+      # Make the UI visible on admin purposes
+      - 8080:8080
     depends_on:
-      - postgres-keycloak
-    ### Keycloak related notes
+      postgres-keycloak:
+        condition: service_healthy
+    ### Dockerized Keycloak related notes
     # On the correspondance between quay.io images and corresponding sources
     #  https://keycloak.discourse.group/t/source-behind-the-quay-io-latest-docker-image/15351
     # The answer goes:
