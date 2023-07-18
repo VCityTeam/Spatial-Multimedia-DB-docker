@@ -694,6 +694,7 @@
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
+      "secret": "TemporaryDummySecret",
       "redirectUris": [],
       "webOrigins": [],
       "notBefore": 0,

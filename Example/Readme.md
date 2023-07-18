@@ -91,18 +91,34 @@ through a IDE accessing local files). For the rest of this section, let us
 assume that `SMDB-DOCKER` is an environment variable pointing to the directory
 where this repository was checked out.
 
+```bash
+cd ${SMDB-DOCKER}/Example
+```
+Edit `docker-compose.yml` and expose the port of the postgresql server used
+by SMDB (refer to the "debug" related comments)
+
+```bash
+docker compose up
+```
+
 In order to debug SMDB's code locally 
 [install SMDB](https://github.com/VCityTeam/Spatial-Multimedia-DB/blob/master/doc/Install.md#manual-install), configure it and run it as follows 
 
 ```bash
 cd `git rev-parse --show-toplevel`     # That is Spatial-Multimedia-DB dir
 mv .env .env.set_aside
-cp ${SMDB-DOCKER}/
-wget https://raw.githubusercontent.com/VCityTeam/Spatial-Multimedia-DB-docker/master/Example/.env
-echo 'KC_REALM=vcity' >> .env
-echo 'KC_SERVER_URL=http://localhost/${KEYCLOAK_PORT}' >> .env
-echo 'KC_CLIENT_ID=
+cp ${SMDB-DOCKER}/Example/.env .
+# The following information is defined within the configuration files of 
+# Keycloak, refer to ${SMDB-DOCKER}/Example/Keycloak_data/import/*.json
+# Refer to "realm" entry
+echo 'KC_REALM=vcity' >> .env  
+# The value of KEYCLOAK_PORT is the one given in ${SMDB-DOCKER}/Example/.env
+echo 'KC_SERVER_URL=http://localhost:${KEYCLOAK_PORT}' >> .env
+echo 'KC_CLIENT_ID=vcity-realm'   # Or account ????
+echo 'KC_CLIENT_SECRET=TemporaryDummySecret'
+python3.6 -m venv venv
 source venv/bin/activate
-(venv) 
-
+(venv) python -m pip install -r requirements.txt
+(venv) export PYTHONPATH=`pwd`
+(venv) python api/web_api.py
 ```
