@@ -1,5 +1,17 @@
 # Using Spatial-Multimedia-DB through docker-compose
 
+<!-- TOC -->
+
+- [Running and halting the Spatial-Multimedia-DB SMDB server](#running-and-halting-the-spatial-multimedia-db-smdb-server)
+- [Testing things](#testing-things)
+- [Container's known issues](#containers-known-issues)
+  - [Containers not awaiting each other](#containers-not-awaiting-each-other)
+- [Developers](#developers)
+  - [Developing SMDB server python code](#developing-smdb-server-python-code)
+
+<!-- /TOC -->
+
+## Running and halting the Spatial-Multimedia-DB (SMDB) server
 ```bash
 cd Example
 ```
@@ -11,14 +23,35 @@ Then launch the service with
 docker-compose up -d
 ```
 
-Consume the database through some web based application
-that is connect to `http://localhost:<SPATIAL_MULTIMEDIA_DB_PORT>`
-where you should see a webpage confirming that your deployment was successful.
+Consume the database through some web based application that is connect to 
+`http://localhost:<SPATIAL_MULTIMEDIA_DB_PORT>` (e.g. `http://localhost:8997` 
+if you used the default [`.env` configuration file](./.env)) where you should 
+see a webpage confirming that your deployment was successful.
 
 Eventually shut down the service
 ```bash
 docker-compose down
 ```
+
+## Testing things
+Once the server(s) are up, one can request the Spatial-Multimedia-DB (SMDB).
+For example, if you used the default [`.env` configuration file](./.env) then
+you can try e.g.
+
+```bash
+curl -X 'POST'   'http://localhost:8997/login'   \
+     -H 'accept: application/json' -H 'Content-Type: multipart/form-data'  \
+     -F 'username=admin1' -F 'password=password1'
+```
+
+that should return a token, or
+
+```bash
+curl -X 'GET'   'http://localhost:8997/document'   \
+     -H 'accept: application/json'   -H 'Content-Type: multipart'
+```
+
+that should return the list of documents (empty by default i.e. `[]`).
 
 ## Container's known issues 
 
@@ -46,3 +79,30 @@ extended_doc_api | (Background on this error at: http://sqlalche.me/e/e3q8)
 ```
 
 If it doesn't, check that your .env file is properly configured.
+
+## Developers
+
+### Developing SMDB server (python code)
+
+The current repository relies on SMDB's server code as pointed by 
+`Spatial-Multimedia-DB-context/Dockerfile`. But debugging that server code when 
+ran within a docker container might be a harder context that from the CLI (or
+through a IDE accessing local files). For the rest of this section, let us
+assume that `SMDB-DOCKER` is an environment variable pointing to the directory
+where this repository was checked out.
+
+In order to debug SMDB's code locally 
+[install SMDB](https://github.com/VCityTeam/Spatial-Multimedia-DB/blob/master/doc/Install.md#manual-install), configure it and run it as follows 
+
+```bash
+cd `git rev-parse --show-toplevel`     # That is Spatial-Multimedia-DB dir
+mv .env .env.set_aside
+cp ${SMDB-DOCKER}/
+wget https://raw.githubusercontent.com/VCityTeam/Spatial-Multimedia-DB-docker/master/Example/.env
+echo 'KC_REALM=vcity' >> .env
+echo 'KC_SERVER_URL=http://localhost/${KEYCLOAK_PORT}' >> .env
+echo 'KC_CLIENT_ID=
+source venv/bin/activate
+(venv) 
+
+```
